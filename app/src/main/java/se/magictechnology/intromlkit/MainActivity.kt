@@ -1,25 +1,46 @@
 package se.magictechnology.intromlkit
 
+import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.hardware.biometrics.BiometricManager
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import se.magictechnology.intromlkit.ui.theme.FancyViewMode
 import se.magictechnology.intromlkit.ui.theme.IntroMLKitTheme
+
 
 
 class MainActivity : ComponentActivity() {
@@ -34,58 +55,76 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column {
-                        Greeting("Android")
+                       ui()
 
-                        Button(onClick = {
-                            runTextRecognition()
-                        }) {
-                            Text("Process image")
-                        }
+
                     }
                 }
             }
         }
     }
 
-    private fun runTextRecognition() {
+    @Composable
+    fun ui(){
+        val viewModel = FancyViewMode(context = LocalContext.current)
 
-        var selectedImage = BitmapFactory.decodeResource(resources, R.drawable.sign1)
+        val result: List<String> by viewModel.result.observeAsState(emptyList())
 
-        val image = InputImage.fromBitmap(selectedImage, 0)
-        var textRecognizerOptions = TextRecognizerOptions.Builder().build()
-        val recognizer = TextRecognition.getClient(textRecognizerOptions)
-        //mTextButton.setEnabled(false)
-        recognizer.process(image)
-            .addOnSuccessListener { texts ->
-                //mTextButton.setEnabled(true)
-                processTextRecognitionResult(texts)
+        Column (verticalArrangement = Arrangement.Center){
+
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly) {
+
+
+                Column(verticalArrangement = Arrangement.Center) {
+
+                    Image(
+                        painter = painterResource(id = R.drawable.fanta_logo) ,
+                        contentDescription = "Fanta logo",
+                        modifier = Modifier.size(120.dp)
+                        )
+
+                    Button(onClick = { viewModel.runTextRecognition(R.drawable.fanta_logo) }) {
+                        Text(text = "Fanta")
+                    }
+                }
+                Column(verticalArrangement = Arrangement.Center) {
+
+                    Image(
+                        painter = painterResource(id = R.drawable.pepsilogo) ,
+                        contentDescription = "pepsi logo",
+                        modifier = Modifier.size(120.dp)
+                    )
+                    
+                    Button(onClick = { viewModel.runTextRecognition(R.drawable.pepsi_logo) }) {
+                        Text(text = "Pepsi")
+                    }
+                }
+                Column(verticalArrangement = Arrangement.Center) {
+
+                    Image(
+                        painter = painterResource(id = R.drawable.cuba_cola_logo) ,
+                        contentDescription = "cuba cola logo",
+                        modifier = Modifier.size(120.dp)
+                    )
+                    Button(onClick = { viewModel.runTextRecognition(R.drawable.cuba_cola_logo)}) {
+                        Text(text = "Cuba Cola")
+                    }
+                }
+
+
+
             }
-            .addOnFailureListener { e -> // Task failed with an exception
-                //mTextButton.setEnabled(true)
-                e.printStackTrace()
-            }
-    }
 
-    private fun processTextRecognitionResult(texts: Text) {
-        val blocks: List<Text.TextBlock> = texts.getTextBlocks()
-        if (blocks.size == 0) {
-            //showToast("No text found")
-            return
-        }
-        //mGraphicOverlay.clear()
-        for (i in blocks.indices) {
-            val lines: List<Text.Line> = blocks[i].getLines()
-            for (j in lines.indices) {
-                val elements: List<Text.Element> = lines[j].getElements()
-                for (k in elements.indices) {
-                    //val textGraphic: Graphic = TextGraphic(mGraphicOverlay, elements[k])
-                    //mGraphicOverlay.add(textGraphic)
-                    Log.i("MLKITDEBUG",elements[k].text + " " + elements[k].confidence.toString())
-
+            LazyColumn {
+                items(result) { text ->
+                    Text(text = text)
                 }
             }
         }
     }
+
+
 }
 
 @Composable
@@ -100,6 +139,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     }
 }
 
+
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
@@ -107,3 +148,4 @@ fun GreetingPreview() {
         Greeting("Android")
     }
 }
+
